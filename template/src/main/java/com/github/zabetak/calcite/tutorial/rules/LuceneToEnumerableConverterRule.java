@@ -16,16 +16,33 @@
  */
 package com.github.zabetak.calcite.tutorial.rules;
 
+import org.apache.calcite.adapter.enumerable.EnumerableConvention;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.convert.ConverterRule;
+
 import com.github.zabetak.calcite.tutorial.operators.LuceneToEnumerableConverter;
 import com.github.zabetak.calcite.tutorial.operators.LuceneRel;
 
+import static com.github.zabetak.calcite.tutorial.operators.LuceneRel.LUCENE;
 /**
  * Planner rule converting any kind of {@link LuceneRel} expression to
  * {@link org.apache.calcite.adapter.enumerable.EnumerableRel} by creating a
  * {@link LuceneToEnumerableConverter}.
  */
-public final class LuceneToEnumerableConverterRule {
+public final class LuceneToEnumerableConverterRule extends ConverterRule {
   // TODO 1. Extend ConverterRule
+  public LuceneToEnumerableConverterRule(Config config) {
+      super(config);
+  }
   // TODO 2. Implement convert method
+    @Override public RelNode convert(RelNode rel) {
+        return new LuceneToEnumerableConverter(rel);
+    }
+
   // TODO 3. Create DEFAULT configuration for rule
+
+    public static final Config DEFAULT = Config.INSTANCE
+            .withConversion(LuceneRel.class,
+                    LUCENE, EnumerableConvention.INSTANCE, "LuceneEnumerableConverterRule")
+            .withRuleFactory(LuceneToEnumerableConverterRule::new);
 }

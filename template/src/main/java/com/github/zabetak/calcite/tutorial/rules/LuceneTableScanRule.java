@@ -17,19 +17,49 @@
 package com.github.zabetak.calcite.tutorial.rules;
 
 import org.apache.calcite.rel.logical.LogicalTableScan;
+import org.apache.calcite.plan.Convention;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.convert.ConverterRule;
 
 import com.github.zabetak.calcite.tutorial.operators.LuceneTableScan;
+import com.github.zabetak.calcite.tutorial.LuceneTable;
+
+import java.util.Collections;
+
+import static com.github.zabetak.calcite.tutorial.operators.LuceneRel.LUCENE;
 
 /**
  * Rule to convert a {@link LogicalTableScan} to a {@link LuceneTableScan} if possible.
  * The expression can be converted to a {@link LuceneTableScan} if the table corresponds to a Lucene
  * index.
  */
-public final class LuceneTableScanRule {
+public final class LuceneTableScanRule extends ConverterRule {
   // TODO 1. Extend Converter rule
+  public LuceneTableScanRule(final Config config) {
+      super(config);
+  }
+
   // TODO 2. Implement convert method
-  // TODO 2a. Check for table class
-  // TODO 2b. Change operator convention
+    // TODO 2a. Check for table class
+    // TODO 2b. Change operator convention
+  @Override public RelNode convert(final RelNode rel) {
+      final LogicalTableScan scan = (LogicalTableScan) rel;
+      final LuceneTable table = scan.getTable().unwrap(LuceneTable.class);
+      if (table != null) {
+          return
+                  new LuceneTableScan(
+                          scan.getCluster(),
+                          scan.getCluster().traitSetOf(LUCENE),
+                          Collections.emptyList(),
+                          scan.getTable());
+      }
+      return null;
+  }
+
   // TODO 3. Create default rule config
+  public static final Config DEFAULT = Config.INSTANCE
+          .withConversion(LogicalTableScan.class, Convention.NONE,
+                  LUCENE, "LuceneTableScanRule")
+          .withRuleFactory(LuceneTableScanRule::new);
 
 }

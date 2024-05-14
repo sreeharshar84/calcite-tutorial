@@ -48,6 +48,10 @@ import org.apache.calcite.sql.validate.SqlValidatorUtil;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
 
+
+import com.github.zabetak.calcite.tutorial.rules.LuceneToEnumerableConverterRule;
+import com.github.zabetak.calcite.tutorial.rules.LuceneTableScanRule;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -84,6 +88,7 @@ public class LuceneQueryProcessor {
       // 3. Add the TPC-H table to the schema
       String indexPath = Paths.get(DatasetIndexer.INDEX_LOCATION, "tpch",
               tpchTable.name()).toString();
+      System.out.println("indexPath: " + indexPath);
       schema.add(tpchTable.name(), new LuceneTable(indexPath, builder.build()));
     }
 
@@ -140,7 +145,10 @@ public class LuceneQueryProcessor {
     planner.addRule(EnumerableRules.ENUMERABLE_SORT_RULE);
     planner.addRule(EnumerableRules.ENUMERABLE_CALC_RULE);
     planner.addRule(EnumerableRules.ENUMERABLE_JOIN_RULE);
-    planner.addRule(EnumerableRules.ENUMERABLE_TABLE_SCAN_RULE);
+    //planner.addRule(EnumerableRules.ENUMERABLE_TABLE_SCAN_RULE);
+
+    planner.addRule(LuceneTableScanRule.DEFAULT.toRule());
+    planner.addRule(LuceneToEnumerableConverterRule.DEFAULT.toRule());
 
     // 16. Start the optimization process to obtain the most efficient physical plan based on
     // the provided rule set.
@@ -162,8 +170,12 @@ public class LuceneQueryProcessor {
     // results
     long start = System.currentTimeMillis();
 
-    for (Object[] row: execPlan.bind(new SchemaOnlyDataContext(schema))) {
-      System.out.println(Arrays.toString(row));
+    for (Object row: execPlan.bind(new SchemaOnlyDataContext(schema))) {
+      if (row instanceof Object[]) {
+        System.out.println(Arrays.toString((Object[]) row));
+      } else {
+        System.out.println(row);
+      }
     }
 
     long finish = System.currentTimeMillis();
