@@ -48,9 +48,9 @@ import org.apache.calcite.sql.validate.SqlValidatorUtil;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.StandardConvertletTable;
 
-
 import com.github.zabetak.calcite.tutorial.rules.LuceneToEnumerableConverterRule;
 import com.github.zabetak.calcite.tutorial.rules.LuceneTableScanRule;
+import com.github.zabetak.calcite.tutorial.rules.LuceneFilterRule;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -149,6 +149,8 @@ public class LuceneQueryProcessor {
 
     planner.addRule(LuceneTableScanRule.DEFAULT.toRule());
     planner.addRule(LuceneToEnumerableConverterRule.DEFAULT.toRule());
+    //Pushdown
+    planner.addRule(LuceneFilterRule.DEFAULT.toRule());
 
     // 16. Start the optimization process to obtain the most efficient physical plan based on
     // the provided rule set.
